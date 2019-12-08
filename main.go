@@ -6,7 +6,18 @@ import (
 )
 
 func main() {
+
+
+}
+
+func login()  {
+
+	
+}
+
+func get_cookie()()  {
 	config := general.TicketConfig()
 	fmt.Println(config)
+	
 }
 

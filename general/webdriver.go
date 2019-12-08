@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func Driver() {
+func Driver() () {
 	opts := []selenium.ServiceOption{}
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
@@ -34,19 +34,24 @@ func Driver() {
 		log.Printf("Error starting the ChromeDriver server: %v", err)
 	}
 	// 调起chrome浏览器
+
 	webDriver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d/wd/hub", 9515))
 	if err != nil {
 		panic(err)
 	}
 
+
 	webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
 		Value: "www",
 	})
-	// 导航到目标网站
-	err = webDriver.Get("http://www.github.com")
+
+
+	//导航到目标网站
+	err = webDriver.Get()
 	if err != nil {
 		panic(fmt.Sprintf("Failed to load page: %s\n", err))
 	}
 	log.Println(webDriver.Title())
+
 }

@@ -15,26 +15,33 @@ func TicketConfig() map[string]string {
 	cfg, err := goconfig.LoadConfigFile(configPath)
 	if err != nil {
 		log.Println(err)
+		log.Println("***[ERROR] 初始化失败，请检查配置文件是否正常***")
 	}
 
 	sess, _ := cfg.GetValue("ticket", "sess")
 	price, _ := cfg.GetValue("ticket", "price")
 	date, _ := cfg.GetValue("ticket", "date")
-	realName, _ := cfg.GetValue("ticket", "real_name")
-	nickName, _ := cfg.GetValue("ticket", "nick_name")
-	ticketNum, _ := cfg.GetValue("ticket", "ticket_num")
-	damaiUrl, _ := cfg.GetValue("ticket", "damai_url")
-	targetUrl, _ := cfg.GetValue("ticket", "target_url")
+	real_name, _ := cfg.GetValue("ticket", "real_name")
+	nick_name, _ := cfg.GetValue("ticket", "nick_name")
+	ticket_mum, _ := cfg.GetValue("ticket", "ticket_num")
+	damai_url, _ := cfg.GetValue("ticket", "damai_url")
+	target_url, _ := cfg.GetValue("ticket", "target_url")
+	total_wait_time, _ := cfg.GetValue("ticket", "total_wait_time")
+	refresh_wait_time, _ := cfg.GetValue("ticket", "refresh_wait_time")
+	intersect_wait_time, _ := cfg.GetValue("ticket", "intersect_wait_time")
 
 	config := make(map[string]string, 0)
 	config["secc"] = sess
 	config["price"] = price
 	config["date"] = date
-	config["realName"] = realName
-	config["nickName"] = nickName
-	config["ticketNum"] = ticketNum
-	config["damaiUrl"] = damaiUrl
-	config["targetUrl"] = targetUrl
+	config["real_name"] = real_name
+	config["nick_name"] = nick_name
+	config["ticket_num"] = ticket_mum
+	config["damai_url"] = damai_url
+	config["target_url"] = target_url
+	config["total_wait_time"] = total_wait_time
+	config["refresh_wait_time"] = refresh_wait_time
+	config["intersect_wait_time"] = intersect_wait_time
 
 	return config
 }
