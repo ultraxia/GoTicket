@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func Driver() () {
+func Driver() (selenium.WebDriver) {
 	opts := []selenium.ServiceOption{}
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
@@ -40,18 +40,11 @@ func Driver() () {
 		panic(err)
 	}
 
-
-	webDriver.AddCookie(&selenium.Cookie{
+	_ = webDriver.AddCookie(&selenium.Cookie{
 		Name:  "defaultJumpDomain",
 		Value: "www",
 	})
-
-
-	//导航到目标网站
-	err = webDriver.Get()
-	if err != nil {
-		panic(fmt.Sprintf("Failed to load page: %s\n", err))
-	}
-	log.Println(webDriver.Title())
+	fmt.Println("### WebDriver初始化成功 ###")
+	return webDriver
 
 }
