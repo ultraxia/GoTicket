@@ -2,9 +2,11 @@ package main
 
 import (
 	"GoTicket/general"
+	"encoding/json"
 	"fmt"
 	"github.com/tebeka/selenium"
 	"log"
+	"os"
 	"strings"
 	"time"
 )
@@ -19,6 +21,7 @@ func init() {
 
 func main() {
 	get_cookie()
+	order_ticket()
 }
 
 func login() {
@@ -57,6 +60,40 @@ func get_cookie() {
 		log.Printf("Cookie获取失败\n%v", err)
 	}
 
-	general.Writefile(cookie[0])
+	general.Writefile(cookie)
 	fmt.Println("### 登录成功 ###")
+}
+
+//TODO 自动读取cookie
+func set_cookie() {
+	var cookies []selenium.Cookie
+	var cookie_dict map[string]interface{}
+
+	filePtr, err := os.Open("cookies.pkl")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer filePtr.Close()
+	decoder := json.NewDecoder(filePtr)
+	err = decoder.Decode(&cookies)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, cookie := range cookies {
+		cookie_dict["domain"] = ".damai.cn"
+		cookie_dict["name"] = cookie.Name
+		cookie_dict["value"] = cookie.Value
+		cookie_dict["expires"] = ""
+		cookie_dict["path"] = "/"
+		cookie_dict["httpOnly"] = false
+		cookie_dict["HostOnly"] = false
+		cookie_dict["Secure"] = false
+	}
+	//webDriver.AddCookie(cookie_dict)
+}
+
+func order_ticket()  {
+	webDriver.Get(config["target_url"])
+	webDriver.Refresh()
+
 }

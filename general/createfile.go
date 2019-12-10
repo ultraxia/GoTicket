@@ -8,12 +8,11 @@ import (
 	"path/filepath"
 )
 
-func Writefile(cookie selenium.Cookie) {
+func Writefile(cookie []selenium.Cookie) {
 	if fileName, err := filepath.Abs("cookies.pkl"); err != nil {
 		log.Fatalln(err)
 	} else {
-
-		file, _ := os.Open(fileName)
+		file, _ := os.Create(fileName)
 		defer file.Close()
 		encoder := json.NewEncoder(file)
 		encoder.Encode(cookie)
