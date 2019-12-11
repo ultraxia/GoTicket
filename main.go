@@ -21,8 +21,8 @@ func init() {
 
 func main() {
 	get_cookie()
-	set_cookie()
-	//order_ticket()
+	//set_cookie()
+	order_ticket()
 }
 
 func login() {
@@ -83,13 +83,13 @@ func set_cookie() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	co,_ := webDriver.GetCookies()
+	co, _ := webDriver.GetCookies()
 	fmt.Println(co)
 
 	for _, v := range cookies {
 		session := &selenium.Cookie{
-			Name: v.Name,
-			Value: v.Value,
+			Name:   v.Name,
+			Value:  v.Value,
 			Expiry: math.MaxUint32,
 		}
 		session.Domain = v.Domain
@@ -98,15 +98,29 @@ func set_cookie() {
 
 	}
 	webDriver.Refresh()
-	co,_ = webDriver.GetCookies()
+	co, _ = webDriver.GetCookies()
 	//fmt.Println(cookie)
 	fmt.Println(co)
 
-
 }
 
-func order_ticket()  {
+func order_ticket() {
 	webDriver.Get(config["target_url"])
 	webDriver.Refresh()
+	//startTime := time.Now()
+	//fmt.Println(startTime)
+	fmt.Println("### 正在选择日期与票价 ###")
+	num := 0
+	for {
+		num += 1
+		web_title, _ := webDriver.Title()
+		if strings.Contains(web_title, "确认订单") == true {
+			fmt.Printf("经过%v轮的努力，恭喜您成功抢到票", num)
+		} else {
+			if len(config["date"]) != 0{
+				datepicker := webDriver.WaitWithTimeout()
+			}
+		}
+	}
 
 }
