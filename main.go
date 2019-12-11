@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tebeka/selenium"
-	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -21,7 +21,8 @@ func init() {
 
 func main() {
 	get_cookie()
-	order_ticket()
+	set_cookie()
+	//order_ticket()
 }
 
 func login() {
@@ -30,11 +31,13 @@ func login() {
 
 func get_cookie() {
 	var web_title string
+
 	if err := webDriver.Get(config["damai_url"]); err != nil {
 		panic(fmt.Sprintf("Failed to load page: %s\n", err))
 	}
 
 	fmt.Println("### 请点击登录 ###")
+
 	for {
 		web_title, _ = webDriver.Title()
 		if strings.Contains(web_title, "大麦网-全球演出赛事官方购票平台") == true {
@@ -45,6 +48,7 @@ func get_cookie() {
 	}
 
 	fmt.Println("### 请选择扫码登陆 ###")
+
 	for {
 		web_title, _ = webDriver.Title()
 		if web_title == "大麦登录" || strings.Contains(web_title, "大麦网-全球演出赛事官方购票平台") != true {
@@ -56,8 +60,9 @@ func get_cookie() {
 	}
 
 	cookie, err := webDriver.GetCookies()
+
 	if err != nil {
-		log.Printf("Cookie获取失败\n%v", err)
+		fmt.Printf("Cookie获取失败\n%v", err)
 	}
 
 	general.Writefile(cookie)
@@ -67,7 +72,6 @@ func get_cookie() {
 //TODO 自动读取cookie
 func set_cookie() {
 	var cookies []selenium.Cookie
-	var cookie_dict map[string]interface{}
 
 	filePtr, err := os.Open("cookies.pkl")
 	if err != nil {
@@ -79,17 +83,26 @@ func set_cookie() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	for _, cookie := range cookies {
-		cookie_dict["domain"] = ".damai.cn"
-		cookie_dict["name"] = cookie.Name
-		cookie_dict["value"] = cookie.Value
-		cookie_dict["expires"] = ""
-		cookie_dict["path"] = "/"
-		cookie_dict["httpOnly"] = false
-		cookie_dict["HostOnly"] = false
-		cookie_dict["Secure"] = false
+	co,_ := webDriver.GetCookies()
+	fmt.Println(co)
+
+	for _, v := range cookies {
+		session := &selenium.Cookie{
+			Name: v.Name,
+			Value: v.Value,
+			Expiry: math.MaxUint32,
+		}
+		session.Domain = v.Domain
+		session.Path = "/"
+		err = webDriver.AddCookie(session)
+
 	}
-	//webDriver.AddCookie(cookie_dict)
+	webDriver.Refresh()
+	co,_ = webDriver.GetCookies()
+	//fmt.Println(cookie)
+	fmt.Println(co)
+
+
 }
 
 func order_ticket()  {
