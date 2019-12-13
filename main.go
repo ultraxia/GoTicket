@@ -21,7 +21,7 @@ func init() {
 
 func main() {
 	get_cookie()
-	//set_cookie()
+	set_cookie()
 	order_ticket()
 }
 
@@ -71,6 +71,7 @@ func get_cookie() {
 
 //TODO 自动读取cookie
 func set_cookie() {
+	webDriver.Get(config["target_url"])
 	var cookies []selenium.Cookie
 
 	filePtr, err := os.Open("cookies.pkl")
@@ -83,8 +84,6 @@ func set_cookie() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	co, _ := webDriver.GetCookies()
-	fmt.Println(co)
 
 	for _, v := range cookies {
 		session := &selenium.Cookie{
@@ -94,13 +93,12 @@ func set_cookie() {
 		}
 		session.Domain = v.Domain
 		session.Path = "/"
+		session.Secure = false
+
 		err = webDriver.AddCookie(session)
 
 	}
 	webDriver.Refresh()
-	co, _ = webDriver.GetCookies()
-	//fmt.Println(cookie)
-	fmt.Println(co)
 
 }
 
@@ -118,7 +116,7 @@ func order_ticket() {
 			fmt.Printf("经过%v轮的努力，恭喜您成功抢到票", num)
 		} else {
 			if len(config["date"]) != 0{
-				datepicker := webDriver.WaitWithTimeout()
+				//datepicker := webDriver.WaitWithTimeout()
 			}
 		}
 	}
