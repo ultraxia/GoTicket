@@ -7,10 +7,12 @@ import (
 	"github.com/tebeka/selenium"
 	"math"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
+var cookie = "cookies.pkl"
 var config map[string]string
 var webDriver selenium.WebDriver
 
@@ -20,13 +22,22 @@ func init() {
 }
 
 func main() {
-	get_cookie()
-	set_cookie()
+	login()
 	order_ticket()
 }
 
 func login() {
+	if exist(cookie) == false {
+		fmt.Println("### 未找到cookies，正在调用登录组件 ###")
+		get_cookie()
+	} else {
+		set_cookie()
+	}
+}
 
+func exist(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil || os.IsExist(err)
 }
 
 func get_cookie() {
@@ -69,12 +80,11 @@ func get_cookie() {
 	fmt.Println("### 登录成功 ###")
 }
 
-//TODO 自动读取cookie
 func set_cookie() {
 	webDriver.Get(config["target_url"])
 	var cookies []selenium.Cookie
 
-	filePtr, err := os.Open("cookies.pkl")
+	filePtr, err := os.Open(cookie)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -98,27 +108,50 @@ func set_cookie() {
 		err = webDriver.AddCookie(session)
 
 	}
-	webDriver.Refresh()
 
 }
 
 func order_ticket() {
 	webDriver.Get(config["target_url"])
-	webDriver.Refresh()
 	//startTime := time.Now()
 	//fmt.Println(startTime)
+
 	fmt.Println("### 正在选择日期与票价 ###")
 	num := 0
-	for {
-		num += 1
-		web_title, _ := webDriver.Title()
-		if strings.Contains(web_title, "确认订单") == true {
-			fmt.Printf("经过%v轮的努力，恭喜您成功抢到票", num)
+	//for {
+	num += 1
+	web_title, _ := webDriver.Title()
+	if strings.Contains(web_title, "确认订单") == true {
+		fmt.Printf("经过%v轮的努力，恭喜您成功抢到票", num)
+	} else {
+		if config["date"] != "0" || len(config["date"]) == 0 {
+			select_date()
 		} else {
-			if len(config["date"]) != 0{
-				//datepicker := webDriver.WaitWithTimeout()
-			}
+			fmt.Println("无需选择场次")
 		}
+	}
+	//}
+
+}
+
+//选择场次
+func select_date() {
+	datepickers, err := webDriver.FindElement(selenium.ByClassName, "perform__order__box")
+	if err != nil {
+		fmt.Println(err)
+	}
+	orderElements, err := datepickers.FindElements(selenium.ByClassName, "select_right_list")
+	dateElements := orderElements[1]
+	dateList, err := dateElements.FindElements(selenium.ByTagName, "span")
+	if err != nil {
+		fmt.Println(nil)
+	}
+	dateConfig, _ := strconv.Atoi(config["date"])
+	err = dateList[dateConfig].Click()
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("场次选择成功")
 	}
 
 }
