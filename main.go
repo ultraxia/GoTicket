@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tebeka/selenium"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"time"
 )
 
+var num = 0
 var cookie = "cookies.pkl"
 var config map[string]string
 var webDriver selenium.WebDriver
@@ -24,6 +26,7 @@ func init() {
 func main() {
 	login()
 	order_ticket()
+
 }
 
 func login() {
@@ -32,6 +35,7 @@ func login() {
 		get_cookie()
 	} else {
 		set_cookie()
+		fmt.Println("### 发现cookies，自动登录成功 ###")
 	}
 }
 
@@ -43,7 +47,7 @@ func exist(filename string) bool {
 func get_cookie() {
 	var web_title string
 
-	if err := webDriver.Get(config["damai_url"]); err != nil {
+	if err := webDriver.Get(config["login_url"]); err != nil {
 		panic(fmt.Sprintf("Failed to load page: %s\n", err))
 	}
 
@@ -77,7 +81,7 @@ func get_cookie() {
 	}
 
 	general.Writefile(cookie)
-	fmt.Println("### 登录成功 ###")
+	fmt.Printf("### 登录成功 ###\n")
 }
 
 func set_cookie() {
@@ -113,45 +117,118 @@ func set_cookie() {
 
 func order_ticket() {
 	webDriver.Get(config["target_url"])
+	showName, _ := webDriver.Title()
+	fmt.Printf("### 正在加载：%v ###\n",showName)
 	//startTime := time.Now()
 	//fmt.Println(startTime)
 
-	fmt.Println("### 正在选择日期与票价 ###")
-	num := 0
 	//for {
 	num += 1
 	web_title, _ := webDriver.Title()
 	if strings.Contains(web_title, "确认订单") == true {
-		fmt.Printf("经过%v轮的努力，恭喜您成功抢到票", num)
+		fmt.Printf("### 经过%v轮的努力，恭喜您成功抢到票 ###\n", num)
 	} else {
-		if config["date"] != "0" || len(config["date"]) == 0 {
-			select_date()
+		select_city()
+		select_date()
+		select_price()
+		confirm_order()
+
+	}
+
+}
+
+//选择城市
+func select_city() {
+	if config["date"] != "0" || len(config["date"]) == 0 {
+		orderElements := general.GetOrderPicker(webDriver)
+		cityElements := orderElements[0]
+		cityList, err := cityElements.FindElements(selenium.ByTagName, "span")
+		if err != nil {
+			fmt.Println(nil)
+		}
+		cityConfig, _ := strconv.Atoi(config["city"])
+		cityButton := cityList[cityConfig-1]
+		cityName, err := cityButton.Text()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		err = cityButton.Click()
+		if err != nil {
+			log.Fatalln(err)
 		} else {
-			fmt.Println("无需选择场次")
+			log.Printf("### 已选择： %v ###", cityName)
 		}
 	}
-	//}
 
 }
 
 //选择场次
 func select_date() {
-	datepickers, err := webDriver.FindElement(selenium.ByClassName, "perform__order__box")
-	if err != nil {
-		fmt.Println(err)
+	if config["date"] != "0" || len(config["date"]) == 0 {
+		orderElements := general.GetOrderPicker(webDriver)
+		dateElements := orderElements[1]
+		dateList, err := dateElements.FindElements(selenium.ByTagName, "span")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		dateConfig, _ := strconv.Atoi(config["date"])
+		dateButton := dateList[dateConfig-1]
+		date, err := dateButton.Text()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		err = dateButton.Click()
+		if err != nil {
+			log.Fatalln(err)
+		} else {
+			log.Printf("### 已选择： %v ###", date)
+		}
 	}
-	orderElements, err := datepickers.FindElements(selenium.ByClassName, "select_right_list")
-	dateElements := orderElements[1]
-	dateList, err := dateElements.FindElements(selenium.ByTagName, "span")
+}
+
+//选择票档
+func select_price() {
+	orderElements := general.GetOrderPicker(webDriver)
+	priceElements := orderElements[2]
+	orderList, err := priceElements.FindElements(selenium.ByClassName, "skuname")
 	if err != nil {
-		fmt.Println(nil)
+		log.Fatalln(err)
 	}
-	dateConfig, _ := strconv.Atoi(config["date"])
-	err = dateList[dateConfig].Click()
+	priceConfig, _ := strconv.Atoi(config["price"])
+	priceButton := orderList[priceConfig-1]
+	price, err := priceButton.Text()
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println("场次选择成功")
+		log.Fatalln(err)
 	}
 
+	err = orderList[priceConfig-1].Click()
+	if err != nil {
+		log.Fatalln(err)
+	} else {
+		fmt.Printf("### 票档选择成功,已选择 %v ###\n", price)
+	}
+
+}
+
+func confirm_order() {
+	pickers, err := webDriver.FindElement(selenium.ByClassName, "buybtn")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	button_text, err := pickers.Text()
+
+	if strings.Contains(button_text, "选座购买") == true {
+		pickers.Click()
+		fmt.Printf("### 请手工选座并提交 ###\n")
+	}
+
+	if strings.Contains(button_text, "提交缺货登记") == true {
+		pickers.Click()
+		fmt.Printf("### 票已售罄，已为您提交缺货登记 ###\n")
+	}
+
+	if strings.Contains(button_text, "立即预定") == true {
+		pickers.Click()
+		fmt.Println("### 预售已开启，请手动确认订单 ###")
+	}
 }

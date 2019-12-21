@@ -48,3 +48,15 @@ func Driver() (selenium.WebDriver) {
 	return webDriver
 
 }
+
+func GetOrderPicker(webDriver selenium.WebDriver) ([]selenium.WebElement)  {
+	pickers, err := webDriver.FindElement(selenium.ByClassName, "perform__order__box")
+	if err != nil {
+		fmt.Println(err)
+	}
+	orderElements, err := pickers.FindElements(selenium.ByClassName, "select_right_list")
+	if err != nil{
+		log.Fatalln(err)
+	}
+	return orderElements
+}
